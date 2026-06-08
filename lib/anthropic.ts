@@ -45,12 +45,15 @@ export async function runClaude({
 }: RunClaudeOptions): Promise<string> {
   const anthropic = getAnthropicClient();
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _temp = temperature; // silence unused parameter warning
+
   const message = await anthropic.messages.create({
     model: CLAUDE_MODEL,
     max_tokens: maxTokens,
     system,
     messages: [{ role: "user", content: user }],
-  } as Parameters<typeof anthropic.messages.create>[0]);
+  });
 
   return message.content
     .filter((block): block is Anthropic.TextBlock => block.type === "text")
