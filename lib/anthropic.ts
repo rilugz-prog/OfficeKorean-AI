@@ -45,20 +45,12 @@ export async function runClaude({
 }: RunClaudeOptions): Promise<string> {
   const anthropic = getAnthropicClient();
 
-  const createParams: Record<string, unknown> = {
+  const message = await anthropic.messages.create({
     model: CLAUDE_MODEL,
     max_tokens: maxTokens,
     system,
     messages: [{ role: "user", content: user }],
-  };
-
-  if (temperature !== undefined) {
-    createParams.temperature = temperature;
-  }
-
-  const message = await anthropic.messages.create(
-    createParams as Parameters<typeof anthropic.messages.create>[0]
-  );
+  } as Parameters<typeof anthropic.messages.create>[0]);
 
   return message.content
     .filter((block): block is Anthropic.TextBlock => block.type === "text")
