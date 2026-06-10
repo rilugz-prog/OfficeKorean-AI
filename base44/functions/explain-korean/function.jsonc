@@ -1,0 +1,6 @@
+{
+  "name": "explain-korean",
+  "description": "Decode Korean workplace messages and provide cultural context and suggested replies",
+  "runtime": "deno",
+  "entry": "index.ts"
+}

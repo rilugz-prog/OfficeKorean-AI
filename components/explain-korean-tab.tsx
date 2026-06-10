@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/card";
 import { CopyButton } from "@/components/copy-button";
 import { ExplainKoreanResponse } from "@/types";
+import { base44 } from "@/lib/base44Client";
 
 function UrgencyMeter({ score }: { score: number }) {
   const pct = (Math.max(1, Math.min(10, score)) / 10) * 100;
@@ -81,13 +82,9 @@ export function ExplainKoreanTab() {
     setError(null);
     setResult(null);
     try {
-      const res = await fetch("/api/explain-korean", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+      const data = await base44.functions.invoke("explain-korean", {
+        text,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Explain Korean failed.");
       setResult(data as ExplainKoreanResponse);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");

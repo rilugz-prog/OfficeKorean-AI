@@ -66,10 +66,26 @@ export interface ExplainKoreanResponse {
   suggestedEnglishReply: string;
 }
 
+// --- Feature 4: Workplace Template Generator -------------------------------
+
+export interface TemplateGenerateResponse {
+  korean: string;
+  english: string;
+  explanation: string;
+}
+
 // --- API error shape -------------------------------------------------------
 
 export interface ApiError {
   error: string;
+}
+
+/** Structured error envelope returned by Phase 2 (account-aware) endpoints. */
+export interface StructuredApiError {
+  success: false;
+  code: string;
+  message: string;
+  [key: string]: unknown;
 }
 
 // ---------------------------------------------------------------------------

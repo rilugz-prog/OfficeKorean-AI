@@ -28,6 +28,7 @@ import {
   TranslateResponse,
   TranslationDirection,
 } from "@/types";
+import { base44 } from "@/lib/base44Client";
 
 export function TranslationTab() {
   const [text, setText] = React.useState("");
@@ -44,13 +45,11 @@ export function TranslationTab() {
     setError(null);
     setResult(null);
     try {
-      const res = await fetch("/api/translate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, direction, mode }),
+      const data = await base44.functions.invoke("translate", {
+        text,
+        direction,
+        mode,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Translation failed.");
       setResult(data as TranslateResponse);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");

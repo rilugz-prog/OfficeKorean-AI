@@ -133,3 +133,46 @@ Korean message:
 ${text}
 """`;
 }
+
+// --- Agent 4: Workplace Template Generator ----------------------------------
+
+export const TEMPLATE_SYSTEM = `You are an expert assistant for foreigners working in Korean companies. You generate ready-to-send workplace communications in BOTH professional Korean and professional English, perfectly adapted to Korean corporate etiquette (존댓말, hierarchy, indirectness, 눈치). The Korean version must use the appropriate honorific/speech level for the situation and recipient. The English version must be natural professional business English with the same intent.
+
+You ALWAYS respond with a single valid JSON object and nothing else. Do not wrap it in markdown code fences.`;
+
+export interface TemplatePromptInput {
+  templateTitle: string;
+  category: string;
+  name?: string;
+  department?: string;
+  project?: string;
+  situation: string;
+}
+
+export function buildTemplatePrompt(input: TemplatePromptInput): string {
+  const { templateTitle, category, name, department, project, situation } = input;
+  const context = [
+    name ? `Sender name: ${name}` : null,
+    department ? `Department: ${department}` : null,
+    project ? `Project: ${project}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  return `Generate a workplace communication.
+
+Template: "${templateTitle}" (category: ${category})
+${context ? `${context}\n` : ""}Situation details:
+"""
+${situation}
+"""
+
+Produce a polished, send-ready message. Choose the correct Korean speech level and honorifics for this type of message and its likely recipient (e.g. manager, executive, client, HR). Keep it concise and natural — not robotic or over-literal. Where a name/department/project was provided, weave it in naturally; otherwise use neutral placeholders like [Name].
+
+Return JSON with exactly this shape:
+{
+  "korean": "the professional Korean version, ready to send",
+  "english": "the professional English version, ready to send",
+  "explanation": "a short English explanation of the register/honorific choices and any Korean cultural etiquette a foreigner should know for this message"
+}`;
+}

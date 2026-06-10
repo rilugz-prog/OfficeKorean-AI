@@ -5,6 +5,13 @@ import {
   buildExplainKoreanPrompt,
 } from "@/lib/prompts";
 import { ExplainKoreanRequest, ExplainKoreanResponse } from "@/types";
+import { getOptionalAuthContext } from "@/lib/api";
+import {
+  checkFeatureLimit,
+  recordUsage,
+  saveHistory,
+  limitReachedMessage,
+} from "@/lib/usage";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -21,6 +28,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const ctx = await getOptionalAuthContext();
+    if (ctx) {
+      const check = await checkFeatureLimit(ctx.supabase, "explain_korean", ctx.tier);
+      if (!check.allowed) {
+        return NextResponse.json(
+          {
+            success: false,
+            code: "LIMIT_REACHED",
+            message: limitReachedMessage("explain_korean", check),
+            feature: "explain_korean",
+            used: check.used,
+            limit: check.limit,
+          },
+          { status: 429 }
+        );
+      }
+    }
+
     const result = await runClaudeJSON<ExplainKoreanResponse>({
       system: EXPLAIN_KOREAN_SYSTEM,
       user: buildExplainKoreanPrompt(text),
@@ -30,6 +55,24 @@ export async function POST(req: NextRequest) {
     // Clamp urgency to the 1–10 scale defensively.
     if (typeof result.urgencyScore === "number") {
       result.urgencyScore = Math.max(1, Math.min(10, Math.round(result.urgencyScore)));
+    }
+
+    if (ctx) {
+      await recordUsage(ctx.supabase, "explain_korean");
+      await saveHistory(ctx.supabase, {
+        userId: ctx.user.id,
+        feature: "explain_korean",
+        input: text,
+        output: result.workplaceMeaning,
+        metadata: {
+          literalTranslation: result.literalTranslation,
+          tone: result.tone,
+          hierarchy: result.hierarchy,
+          urgencyScore: result.urgencyScore,
+          suggestedKoreanReply: result.suggestedKoreanReply,
+          suggestedEnglishReply: result.suggestedEnglishReply,
+        },
+      });
     }
 
     return NextResponse.json(result);

@@ -10,6 +10,13 @@ import {
   DIRECTION_OPTIONS,
   MODE_OPTIONS,
 } from "@/types";
+import { getOptionalAuthContext } from "@/lib/api";
+import {
+  checkFeatureLimit,
+  recordUsage,
+  saveHistory,
+  limitReachedMessage,
+} from "@/lib/usage";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -38,10 +45,40 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Enforce per-plan limits for signed-in users (anonymous use is unmetered).
+    const ctx = await getOptionalAuthContext();
+    if (ctx) {
+      const check = await checkFeatureLimit(ctx.supabase, "translation", ctx.tier);
+      if (!check.allowed) {
+        return NextResponse.json(
+          {
+            success: false,
+            code: "LIMIT_REACHED",
+            message: limitReachedMessage("translation", check),
+            feature: "translation",
+            used: check.used,
+            limit: check.limit,
+          },
+          { status: 429 }
+        );
+      }
+    }
+
     const result = await runClaudeJSON<TranslateResponse>({
       system: TRANSLATION_SYSTEM,
       user: buildTranslationPrompt(text, direction, mode),
     });
+
+    if (ctx) {
+      await recordUsage(ctx.supabase, "translation");
+      await saveHistory(ctx.supabase, {
+        userId: ctx.user.id,
+        feature: "translation",
+        input: text,
+        output: result.translation,
+        metadata: { direction, mode, notes: result.notes },
+      });
+    }
 
     return NextResponse.json(result);
   } catch (err) {

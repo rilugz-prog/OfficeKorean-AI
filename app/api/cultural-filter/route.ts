@@ -5,6 +5,13 @@ import {
   buildCulturalFilterPrompt,
 } from "@/lib/prompts";
 import { CulturalFilterRequest, CulturalFilterResponse } from "@/types";
+import { getOptionalAuthContext } from "@/lib/api";
+import {
+  checkFeatureLimit,
+  recordUsage,
+  saveHistory,
+  limitReachedMessage,
+} from "@/lib/usage";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -21,10 +28,39 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const ctx = await getOptionalAuthContext();
+    if (ctx) {
+      const check = await checkFeatureLimit(ctx.supabase, "cultural_filter", ctx.tier);
+      if (!check.allowed) {
+        return NextResponse.json(
+          {
+            success: false,
+            code: "LIMIT_REACHED",
+            message: limitReachedMessage("cultural_filter", check),
+            feature: "cultural_filter",
+            used: check.used,
+            limit: check.limit,
+          },
+          { status: 429 }
+        );
+      }
+    }
+
     const result = await runClaudeJSON<CulturalFilterResponse>({
       system: CULTURAL_FILTER_SYSTEM,
       user: buildCulturalFilterPrompt(text),
     });
+
+    if (ctx) {
+      await recordUsage(ctx.supabase, "cultural_filter");
+      await saveHistory(ctx.supabase, {
+        userId: ctx.user.id,
+        feature: "cultural_filter",
+        input: text,
+        output: result.professional,
+        metadata: { explanation: result.explanation },
+      });
+    }
 
     return NextResponse.json(result);
   } catch (err) {

@@ -1,0 +1,6 @@
+{
+  "name": "translate",
+  "description": "Translate text between English and Korean with professional register adaptation",
+  "runtime": "deno",
+  "entry": "index.ts"
+}

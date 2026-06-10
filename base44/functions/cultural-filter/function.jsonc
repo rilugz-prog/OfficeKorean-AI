@@ -1,0 +1,6 @@
+{
+  "name": "cultural-filter",
+  "description": "Rewrite messages to fit Korean workplace etiquette and professionalism",
+  "runtime": "deno",
+  "entry": "index.ts"
+}
