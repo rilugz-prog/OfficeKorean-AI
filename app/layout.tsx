@@ -7,9 +7,9 @@ import { ThemeProvider } from "@/components/theme-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "OfficeKorean AI — Translate Language. Understand Workplace Culture.",
+  title: "SeoroAI — Translate Language. Understand Workplace Culture.",
   description:
-    "OfficeKorean AI helps foreigners working in Korea communicate professionally: pro translation, a Korean cultural filter, and Korean message decoding.",
+    "SeoroAI helps foreigners working in Korea communicate professionally: pro translation, a Korean cultural filter, and Korean message decoding.",
 };
 
 export default function RootLayout({

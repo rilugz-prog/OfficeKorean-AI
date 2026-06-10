@@ -10,7 +10,7 @@ export function Hero() {
           For foreigners working in Korea
         </div>
         <h1 className="bg-gradient-to-br from-foreground to-foreground/60 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-6xl">
-          OfficeKorean AI
+          SeoroAI
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-muted-foreground sm:text-xl">
           Translate Language. Understand Workplace Culture.

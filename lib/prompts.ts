@@ -5,7 +5,7 @@ import {
 } from "@/types";
 
 // ---------------------------------------------------------------------------
-// Prompt engineering for the three OfficeKorean AI agents.
+// Prompt engineering for the three SeoroAI agents.
 //
 // Every agent is instructed to return STRICT JSON (no markdown, no prose) so
 // the API routes can parse the response reliably.

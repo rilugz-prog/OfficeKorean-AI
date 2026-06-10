@@ -1,8 +1,8 @@
-# OfficeKorean AI
+# SeoroAI
 
 **Translate Language. Understand Workplace Culture.**
 
-OfficeKorean AI helps foreigners working in Korea communicate professionally in
+SeoroAI helps foreigners working in Korea communicate professionally in
 Korean workplaces. **Phase 2** turns the original AI tool into a full SaaS
 platform — accounts, history, saved phrases, workplace templates, usage tracking
 and plan enforcement — powered by **Claude Opus** and **Supabase**.

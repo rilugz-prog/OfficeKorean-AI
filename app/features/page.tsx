@@ -15,7 +15,7 @@ import { MarketingHeader } from "@/components/marketing-header";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "Features — OfficeKorean AI",
+  title: "Features — SeoroAI",
   description:
     "Professional translation, a Korean cultural filter, message decoding, workplace templates, history, and a phrase library.",
 };
@@ -74,7 +74,7 @@ export default function FeaturesPage() {
             Everything you need to work in Korean
           </h1>
           <p className="mt-3 text-muted-foreground">
-            OfficeKorean AI is built for foreigners navigating Korean corporate
+            SeoroAI is built for foreigners navigating Korean corporate
             communication — translation plus the cultural context that matters.
           </p>
         </div>

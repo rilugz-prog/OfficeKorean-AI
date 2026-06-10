@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Supabase database types for OfficeKorean AI.
+// Supabase database types for SeoroAI.
 //
 // Hand-maintained to mirror supabase/migrations. If you change the schema,
 // update this file (or regenerate with `supabase gen types typescript`).

@@ -17,7 +17,7 @@ export function MarketingHeader() {
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <Languages className="h-4 w-4" />
           </span>
-          OfficeKorean AI
+          SeoroAI
         </Link>
 
         <nav className="hidden items-center gap-1 sm:flex">

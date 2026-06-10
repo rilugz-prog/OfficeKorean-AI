@@ -18,7 +18,8 @@
       "Bash(node -e \"const p = require\\('./node_modules/@base44/sdk/package.json'\\); console.log\\('sideEffects:', p.sideEffects\\); console.log\\('main:', p.main\\); console.log\\('module:', p.module\\);\")",
       "Bash(node -e \"const s = require\\('./node_modules/@base44/sdk/dist/index.js'\\); console.log\\('exports:', Object.keys\\(s\\).slice\\(0, 10\\)\\);\")",
       "Bash(npm uninstall *)",
-      "Bash(del \"C:\\\\Users\\\\Intellian\\\\Documents\\\\Claude Code\\\\KoreanEnglish Translator\\\\lib\\\\base44Client.ts\")"
+      "Bash(del \"C:\\\\Users\\\\Intellian\\\\Documents\\\\Claude Code\\\\KoreanEnglish Translator\\\\lib\\\\base44Client.ts\")",
+      "Bash(cd \"C:\\\\Users\\\\Intellian\\\\Documents\\\\Claude Code\\\\KoreanEnglish Translator\" && sed -i 's/OfficeKorean AI/SeoroAI/g' supabase/migrations/*.sql)"
     ]
   }
 }

@@ -100,7 +100,7 @@ export function AppShell({
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <Languages className="h-4 w-4" />
           </span>
-          OfficeKorean AI
+          SeoroAI
         </div>
         <div className="flex-1 overflow-y-auto p-3">{NavLinks}</div>
         <div className="border-t p-3">
@@ -125,7 +125,7 @@ export function AppShell({
             >
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
-            <span className="font-semibold lg:hidden">OfficeKorean AI</span>
+            <span className="font-semibold lg:hidden">SeoroAI</span>
           </div>
 
           <div className="flex items-center gap-2">

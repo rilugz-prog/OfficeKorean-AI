@@ -34,7 +34,7 @@ export default function Home() {
 
       <footer className="border-t py-8">
         <div className="container text-center text-sm text-muted-foreground">
-          OfficeKorean AI · Powered by Claude Opus · Built for professionals in
+          SeoroAI · Powered by Claude Opus · Built for professionals in
           Korea
         </div>
       </footer>

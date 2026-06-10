@@ -10,7 +10,7 @@ import { PLANS, PLAN_ORDER } from "@/lib/plans";
 import type { SubscriptionTier } from "@/lib/database.types";
 
 export const metadata: Metadata = {
-  title: "Pricing — OfficeKorean AI",
+  title: "Pricing — SeoroAI",
   description:
     "Simple plans for professionals communicating in Korean. Start free, upgrade when you need more.",
 };

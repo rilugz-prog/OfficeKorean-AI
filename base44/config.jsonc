@@ -2,7 +2,7 @@
 // JSONC enables inline documentation and discoverability directly in config files.
 
 {
-  "name": "officekorean-ai",
+  "name": "seoro-ai",
   "description": "Professional Korean workplace communication tool with AI-powered translation, cultural filtering, and message decoding.",
 
   // Site/hosting configuration for Next.js app deployment

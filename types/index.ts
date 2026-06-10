@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Shared application types for OfficeKorean AI
+// Shared application types for SeoroAI
 // ---------------------------------------------------------------------------
 
 // --- Feature 1: Professional Translation -----------------------------------

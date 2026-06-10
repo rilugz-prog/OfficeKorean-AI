@@ -1,5 +1,5 @@
 -- =====================================================================
--- OfficeKorean AI — Phase 2 schema
+-- SeoroAI — Phase 2 schema
 -- Migration 0004: seed built-in workplace templates (system templates)
 --
 -- Idempotent: clears existing system templates and re-inserts. Safe to

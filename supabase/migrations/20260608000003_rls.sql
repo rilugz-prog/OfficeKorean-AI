@@ -1,5 +1,5 @@
 -- =====================================================================
--- OfficeKorean AI — Phase 2 schema
+-- SeoroAI — Phase 2 schema
 -- Migration 0003: Row Level Security
 --
 -- Every table is owner-scoped: a user may only read/write rows where

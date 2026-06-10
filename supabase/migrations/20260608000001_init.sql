@@ -1,5 +1,5 @@
 -- =====================================================================
--- OfficeKorean AI — Phase 2 schema
+-- SeoroAI — Phase 2 schema
 -- Migration 0001: extensions, enums, tables, indexes
 -- =====================================================================
 
