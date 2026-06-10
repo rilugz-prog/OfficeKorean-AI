@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/card";
 import { CopyButton } from "@/components/copy-button";
 import { CulturalFilterResponse } from "@/types";
-import { base44 } from "@/lib/base44Client";
 
 export function CulturalFilterTab() {
   const [text, setText] = React.useState("");
@@ -31,10 +30,17 @@ export function CulturalFilterTab() {
     setError(null);
     setResult(null);
     try {
-      const data = await base44.functions.invoke("cultural-filter", {
-        text,
+      const res = await fetch("/api/cultural-filter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
       });
-      setResult(data as CulturalFilterResponse);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Cultural filter failed");
+      }
+      const data: CulturalFilterResponse = await res.json();
+      setResult(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {

@@ -13,7 +13,12 @@
       "Bash(npm run *)",
       "Bash(curl -s http://localhost:3000)",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(curl -X POST http://localhost:3000/api/translate -H 'Content-Type: application/json' -d '{\"text\":\"is it working now?\",\"direction\":\"en-to-ko\",\"mode\":\"team-member\"}')",
+      "Bash(node -e \"const p = require\\('./node_modules/@base44/sdk/package.json'\\); console.log\\('sideEffects:', p.sideEffects\\); console.log\\('main:', p.main\\); console.log\\('module:', p.module\\);\")",
+      "Bash(node -e \"const s = require\\('./node_modules/@base44/sdk/dist/index.js'\\); console.log\\('exports:', Object.keys\\(s\\).slice\\(0, 10\\)\\);\")",
+      "Bash(npm uninstall *)",
+      "Bash(del \"C:\\\\Users\\\\Intellian\\\\Documents\\\\Claude Code\\\\KoreanEnglish Translator\\\\lib\\\\base44Client.ts\")"
     ]
   }
 }
