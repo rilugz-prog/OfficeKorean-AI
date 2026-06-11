@@ -210,7 +210,7 @@ export default function DashboardPage() {
           ) : recent.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
               No activity yet. Try the{" "}
-              <Link href="/" className="underline underline-offset-4">
+              <Link href="/translate" className="underline underline-offset-4">
                 translator
               </Link>{" "}
               to get started.

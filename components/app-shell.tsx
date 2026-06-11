@@ -40,6 +40,7 @@ import { PLANS } from "@/lib/plans";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/translate", label: "Translate", icon: Languages },
   { href: "/history", label: "History", icon: History },
   { href: "/phrases", label: "Phrase Library", icon: BookMarked },
   { href: "/templates", label: "Template Center", icon: LayoutTemplate },
@@ -108,7 +109,7 @@ export function AppShell({
         <div className="border-t p-3">
           <Link href="/" className="block">
             <Button variant="ghost" className="w-full justify-start gap-3">
-              <Home className="h-4 w-4" /> Back to app
+              <Home className="h-4 w-4" /> Back to website
             </Button>
           </Link>
         </div>
