@@ -1,4 +1,7 @@
+import { eq } from "drizzle-orm";
 import { getAuthContext, apiError, apiSuccess } from "@/lib/api";
+import { db } from "@/lib/db";
+import { profiles } from "@/lib/db/schema";
 import { parseBody, updateProfileSchema } from "@/lib/validation";
 import { getPlan } from "@/lib/plans";
 
@@ -19,27 +22,40 @@ export async function PATCH(req: Request) {
   const parsed = await parseBody(req, updateProfileSchema);
   if (!parsed.ok) return apiError("VALIDATION_ERROR", parsed.error);
 
-  const updates = { ...parsed.data };
+  const input = parsed.data;
+  const updates: Record<string, unknown> = {};
+
+  if (input.full_name !== undefined) updates.full_name = input.full_name;
+  if (input.preferred_language !== undefined)
+    updates.preferred_language = input.preferred_language;
+  if (input.default_translation_mode !== undefined)
+    updates.default_translation_mode = input.default_translation_mode;
+  if (input.theme !== undefined) updates.theme = input.theme;
+  // Empty string clears the avatar.
+  if (input.avatar_url !== undefined)
+    updates.avatar_url = input.avatar_url === "" ? null : input.avatar_url;
   // Merge notification preferences instead of replacing wholesale.
-  if (updates.notification_preferences) {
+  if (input.notification_preferences) {
     updates.notification_preferences = {
       ...ctx.profile.notification_preferences,
-      ...updates.notification_preferences,
+      ...input.notification_preferences,
     };
   }
-  if (updates.avatar_url === "") updates.avatar_url = undefined;
 
-  const { data, error: dbError } = await ctx.supabase
-    .from("profiles")
-    .update(updates)
-    .eq("id", ctx.user.id)
-    .select("*")
-    .single();
+  if (Object.keys(updates).length === 0) {
+    return apiSuccess({ profile: ctx.profile });
+  }
+  updates.updated_at = new Date();
 
-  if (dbError) {
+  try {
+    const [updated] = await db
+      .update(profiles)
+      .set(updates)
+      .where(eq(profiles.id, ctx.userId))
+      .returning();
+    return apiSuccess({ profile: updated });
+  } catch (dbError) {
     console.error("[/api/profile PATCH]", dbError);
     return apiError("SERVER_ERROR", "Could not update your profile.");
   }
-
-  return apiSuccess({ profile: data });
 }

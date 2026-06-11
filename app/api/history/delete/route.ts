@@ -1,4 +1,7 @@
+import { and, eq, inArray } from "drizzle-orm";
 import { getAuthContext, apiError, apiSuccess } from "@/lib/api";
+import { db } from "@/lib/db";
+import { translation_history } from "@/lib/db/schema";
 import { parseBody, historyDeleteSchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
@@ -12,17 +15,21 @@ export async function POST(req: Request) {
   if (!parsed.ok) return apiError("VALIDATION_ERROR", parsed.error);
 
   const ids = parsed.data.ids ?? (parsed.data.id ? [parsed.data.id] : []);
+  if (ids.length === 0) return apiSuccess({ deleted: 0 });
 
-  const { error: dbError, count } = await ctx.supabase
-    .from("translation_history")
-    .delete({ count: "exact" })
-    .eq("user_id", ctx.user.id)
-    .in("id", ids);
-
-  if (dbError) {
+  try {
+    const deleted = await db
+      .delete(translation_history)
+      .where(
+        and(
+          eq(translation_history.user_id, ctx.userId),
+          inArray(translation_history.id, ids)
+        )
+      )
+      .returning({ id: translation_history.id });
+    return apiSuccess({ deleted: deleted.length });
+  } catch (dbError) {
     console.error("[/api/history/delete]", dbError);
     return apiError("SERVER_ERROR", "Could not delete history.");
   }
-
-  return apiSuccess({ deleted: count ?? 0 });
 }

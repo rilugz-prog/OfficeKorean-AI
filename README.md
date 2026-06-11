@@ -5,10 +5,12 @@
 SeoroAI helps foreigners working in Korea communicate professionally in
 Korean workplaces. **Phase 2** turns the original AI tool into a full SaaS
 platform — accounts, history, saved phrases, workplace templates, usage tracking
-and plan enforcement — powered by **Claude Opus** and **Supabase**.
+and plan enforcement — powered by **Claude Opus**, **Clerk** and **Neon**.
 
-The core AI features still work anonymously when Supabase is not configured, so
-the app degrades gracefully to the Phase 1 MVP.
+The core AI features still work anonymously for logged-out visitors, so the app
+degrades gracefully to the Phase 1 MVP.
+
+> Migrating from the old Supabase build? See **[MIGRATION.md](MIGRATION.md)**.
 
 ## Features
 
@@ -21,9 +23,10 @@ the app degrades gracefully to the Phase 1 MVP.
 3. **Explain Korean** — decode a Korean message: literal translation, workplace
    meaning, tone, hierarchy, urgency score, cultural context, suggested replies.
 
-### Phase 2 SaaS platform (requires Supabase + login)
+### Phase 2 SaaS platform (requires Clerk + Neon + login)
 
-4. **Accounts** — Google OAuth, email/password, registration, password reset.
+4. **Accounts** — Clerk auth: Google OAuth, email/password, registration,
+   password reset, user button.
 5. **Dashboard** — usage stats, charts, plan limits, recent activity, counts.
 6. **Translation History** — search, filter (feature / date / favorites), sort,
    favorite, delete.
@@ -41,7 +44,8 @@ the app degrades gracefully to the Phase 1 MVP.
 - **Next.js 16** (App Router) + **TypeScript**
 - **TailwindCSS** + **ShadCN UI** (Radix primitives), dark/light mode
 - **Anthropic Claude API** (Claude Opus) via `@anthropic-ai/sdk`
-- **Supabase** (Postgres + Auth + Row Level Security) via `@supabase/ssr`
+- **Clerk** for authentication (`@clerk/nextjs`) + webhook user sync (`svix`)
+- **Neon** serverless Postgres (`@neondatabase/serverless`) + **Drizzle ORM**
 - **Zod** for request validation
 - Deployable to **Vercel**
 
@@ -49,24 +53,23 @@ the app degrades gracefully to the Phase 1 MVP.
 
 ```
 .
-├── middleware.ts                       # Session refresh + route protection
-├── supabase/
-│   └── migrations/                     # SQL schema, functions, RLS, seed
-│       ├── 20260608000001_init.sql
-│       ├── 20260608000002_functions.sql
-│       ├── 20260608000003_rls.sql
-│       └── 20260608000004_seed_templates.sql
+├── middleware.ts                       # clerkMiddleware route protection
+├── drizzle.config.ts                   # Drizzle Kit config
+├── drizzle/
+│   └── 0000_init.sql                   # generated SQL migration
 ├── app/
 │   ├── (app)/                          # Protected app shell + pages
 │   │   ├── layout.tsx                  #   requireProfile + AppShell + UpgradeModal
 │   │   ├── dashboard/  history/  phrases/  templates/  settings/
-│   ├── login/  register/  forgot-password/  reset-password/
+│   ├── login/[[...rest]]/              # Clerk <SignIn>
+│   ├── register/[[...rest]]/           # Clerk <SignUp>
+│   ├── forgot-password/                # redirects into Clerk reset flow
 │   ├── pricing/  features/             # Public marketing pages
-│   ├── auth/callback/  auth/signout/   # OAuth + sign-out route handlers
 │   └── api/                            # profile, history(+delete), usage,
-│                                       # phrases(+create/update/delete),
-│                                       # templates(+generate), favorites,
-│                                       # translate, cultural-filter, explain-korean
+│       │                               # phrases(+create/update/delete),
+│       │                               # templates(+generate), favorites,
+│       │                               # translate, cultural-filter, explain-korean
+│       └── webhooks/clerk/             # Clerk → Neon user sync (svix-verified)
 ├── components/
 │   ├── ui/                             # ShadCN primitives
 │   ├── app-shell.tsx  upgrade-modal.tsx  usage-chart.tsx  auth-shell.tsx …
@@ -74,8 +77,9 @@ the app degrades gracefully to the Phase 1 MVP.
 │                                       # useUsage, useHistory, useSavedPhrases,
 │                                       # useTemplates
 ├── lib/
-│   ├── supabase/{client,server,middleware,config}.ts
-│   ├── auth.ts  api.ts  usage.ts  plans.ts  validation.ts
+│   ├── clerk.ts  auth.ts  api.ts  user-sync.ts       # auth + Clerk
+│   ├── db/{schema,index,migrate,seed}.ts  neon.ts    # Neon + Drizzle
+│   ├── usage.ts  plans.ts  validation.ts             # plan engine + validation
 │   ├── anthropic.ts  prompts.ts  client-api.ts  database.types.ts
 └── types/index.ts
 ```
@@ -88,53 +92,45 @@ the app degrades gracefully to the Phase 1 MVP.
    npm install
    ```
 
-2. **Configure environment** — `cp .env.example .env.local` and fill in:
+2. **Configure environment** — `cp .env.example .env.local` and fill in
+   `ANTHROPIC_API_KEY`, `DATABASE_URL` (Neon), and the Clerk keys
+   (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`,
+   `CLERK_WEBHOOK_SECRET`). See **[MIGRATION.md](MIGRATION.md) §3–5** for how to
+   provision Neon and Clerk.
 
-   ```env
-   ANTHROPIC_API_KEY=sk-ant-...
-   NEXT_PUBLIC_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-   ```
-
-3. **Set up the database** (see below), then run:
+3. **Set up the database**, then run:
 
    ```bash
-   npm run dev   # http://localhost:3000
+   npm run db:migrate   # create tables, enums, indexes in Neon
+   npm run db:seed      # insert the 35 system templates
+   npm run dev          # http://localhost:3000
    ```
 
-## Database Setup (Supabase)
+## Database (Neon + Drizzle)
 
-1. Create a project at <https://supabase.com>.
-2. Apply the migrations in `supabase/migrations/` **in order**. Either:
-   - **SQL editor:** paste each file's contents and run, oldest first; or
-   - **Supabase CLI:**
-     ```bash
-     supabase link --project-ref YOUR-REF
-     supabase db push
-     ```
-   The migrations create the tables, enum types, the `handle_new_user` trigger
-   (auto-creates a profile on signup), the atomic usage RPCs, all RLS policies,
-   and seed the 35 built-in templates.
-3. **Auth providers** — in **Authentication → Providers**:
-   - Enable **Email** (and "Confirm email" if you want email verification).
-   - Enable **Google**, adding your OAuth client ID/secret.
-4. **Redirect URLs** — in **Authentication → URL Configuration** add:
-   - `http://localhost:3000/auth/callback`
-   - `https://YOUR-DOMAIN/auth/callback`
-   - `https://YOUR-DOMAIN/reset-password`
+The schema lives in `lib/db/schema.ts` and is the single source of truth.
+
+| Command               | Purpose                                          |
+| --------------------- | ------------------------------------------------ |
+| `npm run db:generate` | Generate a SQL migration into `drizzle/`         |
+| `npm run db:migrate`  | Apply migrations to Neon                          |
+| `npm run db:push`     | Push the schema directly (dev convenience)        |
+| `npm run db:seed`     | Seed the 35 built-in workplace templates          |
+| `npm run db:studio`   | Open Drizzle Studio                               |
 
 ### Schema overview
 
-| Table                 | Purpose                                         |
-| --------------------- | ----------------------------------------------- |
-| `profiles`            | 1:1 with `auth.users`; tier + preferences       |
-| `usage_tracking`      | per-user / feature / day counters               |
-| `translation_history` | every translation, filter, analysis             |
-| `saved_phrases`       | user phrase library (capped by plan)            |
-| `favorites`           | generic favorites across resource types         |
-| `templates`           | system + custom workplace templates             |
+| Table                 | Purpose                                                |
+| --------------------- | ------------------------------------------------------ |
+| `profiles`            | 1:1 with a Clerk user (`clerk_user_id`); tier + prefs  |
+| `usage_tracking`      | per-user / feature / day counters                      |
+| `translation_history` | every translation, filter, analysis                    |
+| `saved_phrases`       | user phrase library (capped by plan)                   |
+| `favorites`           | generic favorites across resource types                |
+| `templates`           | system + custom workplace templates                    |
 
-Every table has **Row Level Security** scoping rows to `auth.uid()`.
+Ownership is enforced in application code: every query is scoped by
+`profiles.id`, resolved from the Clerk session.
 
 ## Plan Limits
 
@@ -154,23 +150,28 @@ When a limit is hit, endpoints return:
 
 ## Security
 
-- **Row Level Security** on all tables (owner-scoped).
-- **Session validation** via `supabase.auth.getUser()` in middleware + every
-  protected route.
+- **Clerk session validation** via `auth()` in `clerkMiddleware` + every
+  protected route handler (`getAuthContext`).
+- **Ownership verification** — every query filters by `profiles.id`; no row is
+  reachable across users.
 - **Input validation** with Zod on all write endpoints.
-- **Ownership verification** — every query filters by `user_id = auth.uid()`.
+- **Webhook signature verification** — the Clerk webhook is svix-verified with
+  `CLERK_WEBHOOK_SECRET` before any profile write.
 - **Rate limiting / quotas** via the usage engine.
-- **Secure cookies** handled by `@supabase/ssr`.
-- API keys stay server-side; only `NEXT_PUBLIC_*` Supabase keys reach the client.
+- API keys stay server-side; only `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` reaches
+  the client.
 
 ## Deploy to Vercel
 
 1. Push the repo and **Import** it in Vercel (auto-detected as Next.js).
-2. Add environment variables: `ANTHROPIC_API_KEY`, `NEXT_PUBLIC_SUPABASE_URL`,
-   `NEXT_PUBLIC_SUPABASE_ANON_KEY` (and optional `ANTHROPIC_MODEL`).
-3. Add your production `…/auth/callback` and `…/reset-password` URLs to Supabase
-   redirect URLs.
-4. **Deploy.** API routes run as serverless functions (`maxDuration = 60`).
+2. Add the environment variables from `.env.example` (Anthropic, Neon `DATABASE_URL`,
+   all Clerk keys).
+3. Point the Clerk webhook at `https://YOUR-DOMAIN/api/webhooks/clerk`
+   (events: `user.created`, `user.updated`, `user.deleted`) and set
+   `CLERK_WEBHOOK_SECRET`.
+4. Run `npm run db:migrate` and `npm run db:seed` against the production
+   `DATABASE_URL`.
+5. **Deploy.** API routes run as serverless functions (`maxDuration = 60`).
 
 ## Roadmap
 

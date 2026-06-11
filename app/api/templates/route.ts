@@ -1,4 +1,7 @@
+import { asc, eq, or } from "drizzle-orm";
 import { getAuthContext, apiError, apiSuccess } from "@/lib/api";
+import { db } from "@/lib/db";
+import { templates as templatesTable } from "@/lib/db/schema";
 import type { Template } from "@/lib/database.types";
 
 export const runtime = "nodejs";
@@ -9,19 +12,24 @@ export async function GET() {
   const { ctx, error } = await getAuthContext();
   if (error) return error;
 
-  const { data, error: dbError } = await ctx.supabase
-    .from("templates")
-    .select("*")
-    .or(`is_system.eq.true,user_id.eq.${ctx.user.id}`)
-    .order("category", { ascending: true })
-    .order("sort_order", { ascending: true });
-
-  if (dbError) {
+  let data;
+  try {
+    data = await db
+      .select()
+      .from(templatesTable)
+      .where(
+        or(
+          eq(templatesTable.is_system, true),
+          eq(templatesTable.user_id, ctx.userId)
+        )
+      )
+      .orderBy(asc(templatesTable.category), asc(templatesTable.sort_order));
+  } catch (dbError) {
     console.error("[/api/templates GET]", dbError);
     return apiError("SERVER_ERROR", "Could not load templates.");
   }
 
-  const templates = (data ?? []) as Template[];
+  const templates = data as unknown as Template[];
   const categories = Array.from(new Set(templates.map((t) => t.category)));
   const grouped = categories.map((category) => ({
     category,

@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     // Enforce per-plan limits for signed-in users (anonymous use is unmetered).
     const ctx = await getOptionalAuthContext();
     if (ctx) {
-      const check = await checkFeatureLimit(ctx.supabase, "translation", ctx.tier);
+      const check = await checkFeatureLimit(ctx.userId, "translation", ctx.tier);
       if (!check.allowed) {
         return NextResponse.json(
           {
@@ -70,9 +70,9 @@ export async function POST(req: NextRequest) {
     });
 
     if (ctx) {
-      await recordUsage(ctx.supabase, "translation");
-      await saveHistory(ctx.supabase, {
-        userId: ctx.user.id,
+      await recordUsage(ctx.userId, "translation");
+      await saveHistory({
+        userId: ctx.userId,
         feature: "translation",
         input: text,
         output: result.translation,

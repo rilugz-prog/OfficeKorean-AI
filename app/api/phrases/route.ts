@@ -1,4 +1,7 @@
+import { and, asc, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
 import { getAuthContext, apiError, apiSuccess } from "@/lib/api";
+import { db } from "@/lib/db";
+import { saved_phrases } from "@/lib/db/schema";
 import { checkPhraseLimit } from "@/lib/usage";
 
 export const runtime = "nodejs";
@@ -15,32 +18,47 @@ export async function GET(req: Request) {
   const favorites = url.searchParams.get("favorites") === "true";
   const sort = url.searchParams.get("sort") ?? "newest";
 
-  let query = ctx.supabase
-    .from("saved_phrases")
-    .select("*", { count: "exact" })
-    .eq("user_id", ctx.user.id);
-
-  if (category && category !== "All") query = query.eq("category", category);
-  if (favorites) query = query.eq("is_favorite", true);
+  const conditions: SQL[] = [eq(saved_phrases.user_id, ctx.userId)];
+  if (category && category !== "All") {
+    conditions.push(eq(saved_phrases.category, category));
+  }
+  if (favorites) conditions.push(eq(saved_phrases.is_favorite, true));
   if (q) {
-    const safe = q.replace(/[%,]/g, " ");
-    query = query.or(`title.ilike.%${safe}%,phrase_content.ilike.%${safe}%`);
+    const term = `%${q}%`;
+    conditions.push(
+      or(
+        ilike(saved_phrases.title, term),
+        ilike(saved_phrases.phrase_content, term)
+      ) as SQL
+    );
   }
 
-  if (sort === "title") query = query.order("title", { ascending: true });
-  else query = query.order("created_at", { ascending: sort === "oldest" });
+  const where = and(...conditions);
+  const orderBy =
+    sort === "title"
+      ? asc(saved_phrases.title)
+      : sort === "oldest"
+        ? asc(saved_phrases.created_at)
+        : desc(saved_phrases.created_at);
 
-  const { data, error: dbError, count } = await query;
-  if (dbError) {
+  try {
+    const [items, totalRows] = await Promise.all([
+      db.select().from(saved_phrases).where(where).orderBy(orderBy),
+      db
+        .select({ total: sql<number>`count(*)::int` })
+        .from(saved_phrases)
+        .where(where),
+    ]);
+
+    const limit = await checkPhraseLimit(ctx.userId, ctx.tier);
+
+    return apiSuccess({
+      items,
+      total: Number(totalRows[0]?.total ?? 0),
+      limit: { used: limit.used, max: limit.limit, remaining: limit.remaining },
+    });
+  } catch (dbError) {
     console.error("[/api/phrases GET]", dbError);
     return apiError("SERVER_ERROR", "Could not load phrases.");
   }
-
-  const limit = await checkPhraseLimit(ctx.supabase, ctx.user.id, ctx.tier);
-
-  return apiSuccess({
-    items: data ?? [],
-    total: count ?? 0,
-    limit: { used: limit.used, max: limit.limit, remaining: limit.remaining },
-  });
 }

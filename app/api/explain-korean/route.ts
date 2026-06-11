@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     const ctx = await getOptionalAuthContext();
     if (ctx) {
-      const check = await checkFeatureLimit(ctx.supabase, "explain_korean", ctx.tier);
+      const check = await checkFeatureLimit(ctx.userId, "explain_korean", ctx.tier);
       if (!check.allowed) {
         return NextResponse.json(
           {
@@ -58,9 +58,9 @@ export async function POST(req: NextRequest) {
     }
 
     if (ctx) {
-      await recordUsage(ctx.supabase, "explain_korean");
-      await saveHistory(ctx.supabase, {
-        userId: ctx.user.id,
+      await recordUsage(ctx.userId, "explain_korean");
+      await saveHistory({
+        userId: ctx.userId,
         feature: "explain_korean",
         input: text,
         output: result.workplaceMeaning,

@@ -1,4 +1,7 @@
+import { and, asc, desc, eq, gte, ilike, lte, or, sql, type SQL } from "drizzle-orm";
 import { getAuthContext, apiError, apiSuccess } from "@/lib/api";
+import { db } from "@/lib/db";
+import { translation_history } from "@/lib/db/schema";
 import { parseBody, historyFavoriteSchema } from "@/lib/validation";
 import type { FeatureType } from "@/lib/database.types";
 
@@ -26,34 +29,57 @@ export async function GET(req: Request) {
   const limit = Math.min(Number(url.searchParams.get("limit")) || 50, 100);
   const offset = Number(url.searchParams.get("offset")) || 0;
 
-  let query = ctx.supabase
-    .from("translation_history")
-    .select("*", { count: "exact" })
-    .eq("user_id", ctx.user.id);
-
+  const conditions: SQL[] = [eq(translation_history.user_id, ctx.userId)];
   if (feature && VALID_FEATURES.includes(feature)) {
-    query = query.eq("feature_type", feature);
+    conditions.push(eq(translation_history.feature_type, feature));
   }
-  if (favorites) query = query.eq("is_favorite", true);
-  if (from) query = query.gte("created_at", from);
-  if (to) query = query.lte("created_at", `${to}T23:59:59.999Z`);
+  if (favorites) conditions.push(eq(translation_history.is_favorite, true));
+  if (from) conditions.push(gte(translation_history.created_at, new Date(from)));
+  if (to) {
+    conditions.push(
+      lte(translation_history.created_at, new Date(`${to}T23:59:59.999Z`))
+    );
+  }
   if (q) {
-    // Search both input and output text.
-    const safe = q.replace(/[%,]/g, " ");
-    query = query.or(`input_text.ilike.%${safe}%,output_text.ilike.%${safe}%`);
+    const term = `%${q}%`;
+    conditions.push(
+      or(
+        ilike(translation_history.input_text, term),
+        ilike(translation_history.output_text, term)
+      ) as SQL
+    );
   }
 
-  query = query
-    .order("created_at", { ascending: sort === "oldest" })
-    .range(offset, offset + limit - 1);
+  const where = and(...conditions);
+  const orderBy =
+    sort === "oldest"
+      ? asc(translation_history.created_at)
+      : desc(translation_history.created_at);
 
-  const { data, error: dbError, count } = await query;
-  if (dbError) {
+  try {
+    const [items, totalRows] = await Promise.all([
+      db
+        .select()
+        .from(translation_history)
+        .where(where)
+        .orderBy(orderBy)
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ total: sql<number>`count(*)::int` })
+        .from(translation_history)
+        .where(where),
+    ]);
+    return apiSuccess({
+      items,
+      total: Number(totalRows[0]?.total ?? 0),
+      limit,
+      offset,
+    });
+  } catch (dbError) {
     console.error("[/api/history GET]", dbError);
     return apiError("SERVER_ERROR", "Could not load history.");
   }
-
-  return apiSuccess({ items: data ?? [], total: count ?? 0, limit, offset });
 }
 
 // PATCH /api/history — toggle the favorite flag on an entry.
@@ -64,16 +90,17 @@ export async function PATCH(req: Request) {
   const parsed = await parseBody(req, historyFavoriteSchema);
   if (!parsed.ok) return apiError("VALIDATION_ERROR", parsed.error);
 
-  const { data, error: dbError } = await ctx.supabase
-    .from("translation_history")
-    .update({ is_favorite: parsed.data.is_favorite })
-    .eq("id", parsed.data.id)
-    .eq("user_id", ctx.user.id)
-    .select("*")
-    .single();
+  const [item] = await db
+    .update(translation_history)
+    .set({ is_favorite: parsed.data.is_favorite })
+    .where(
+      and(
+        eq(translation_history.id, parsed.data.id),
+        eq(translation_history.user_id, ctx.userId)
+      )
+    )
+    .returning();
 
-  if (dbError || !data) {
-    return apiError("NOT_FOUND", "History entry not found.");
-  }
-  return apiSuccess({ item: data });
+  if (!item) return apiError("NOT_FOUND", "History entry not found.");
+  return apiSuccess({ item });
 }

@@ -1,12 +1,17 @@
 // ---------------------------------------------------------------------------
 // Shared Route Handler helpers: structured JSON responses + auth context.
+//
+// Auth is backed by Clerk; ownership is enforced in application code via
+// `ctx.userId` (the internal profiles.id). The structured error envelope is
+// unchanged from the Supabase implementation.
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";
-import type { SupabaseClient, User } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
-import type { Profile, SubscriptionTier } from "@/lib/database.types";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { isDbConfigured } from "@/lib/db";
+import type { ProfileRow } from "@/lib/db/schema";
+import { ensureProfile, getProfileByClerkId } from "@/lib/user-sync";
+import type { SubscriptionTier } from "@/lib/database.types";
 
 export type ApiErrorCode =
   | "UNAUTHENTICATED"
@@ -47,10 +52,33 @@ export function apiSuccess<T extends Record<string, unknown>>(data: T) {
 }
 
 export interface AuthContext {
-  supabase: SupabaseClient;
-  user: User;
-  profile: Profile;
+  /** Internal owner id (profiles.id) — scope every query by this. */
+  userId: string;
+  /** External Clerk identity. */
+  clerkUserId: string;
+  profile: ProfileRow;
   tier: SubscriptionTier;
+}
+
+/** Resolve (or lazily create) the profile for the signed-in Clerk user. */
+async function resolveProfile(clerkUserId: string): Promise<ProfileRow | null> {
+  const existing = await getProfileByClerkId(clerkUserId);
+  if (existing) return existing;
+
+  // Webhook hasn't synced yet — create defensively from the Clerk user.
+  const cu = await currentUser();
+  return ensureProfile({
+    clerkUserId,
+    email:
+      cu?.primaryEmailAddress?.emailAddress ??
+      cu?.emailAddresses?.[0]?.emailAddress ??
+      null,
+    fullName:
+      [cu?.firstName, cu?.lastName].filter(Boolean).join(" ") ||
+      cu?.username ||
+      null,
+    avatarUrl: cu?.imageUrl ?? null,
+  });
 }
 
 /**
@@ -60,7 +88,7 @@ export interface AuthContext {
 export async function getAuthContext(): Promise<
   { error: NextResponse; ctx?: never } | { ctx: AuthContext; error?: never }
 > {
-  if (!isSupabaseConfigured) {
+  if (!isDbConfigured) {
     return {
       error: apiError(
         "NOT_CONFIGURED",
@@ -69,47 +97,35 @@ export async function getAuthContext(): Promise<
     };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  const { userId: clerkUserId } = await auth();
+  if (!clerkUserId) {
     return { error: apiError("UNAUTHENTICATED", "Please sign in to continue.") };
   }
 
-  let { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) {
-    const { data: created } = await supabase
-      .from("profiles")
-      .insert({ id: user.id, email: user.email })
-      .select("*")
-      .single();
-    profile = created;
-  }
-
+  const profile = await resolveProfile(clerkUserId);
   if (!profile) {
     return { error: apiError("SERVER_ERROR", "Could not load your profile.") };
   }
 
-  const typed = profile as Profile;
   return {
-    ctx: { supabase, user, profile: typed, tier: typed.subscription_tier },
+    ctx: {
+      userId: profile.id,
+      clerkUserId,
+      profile,
+      tier: profile.subscription_tier,
+    },
   };
 }
 
 /**
  * Soft variant: returns the auth context if the user is signed in, otherwise
  * null. Used by the core AI features, which still work anonymously when no one
- * is logged in (or Supabase is not configured).
+ * is logged in (or the database/Clerk are not configured).
  */
 export async function getOptionalAuthContext(): Promise<AuthContext | null> {
-  if (!isSupabaseConfigured) return null;
+  if (!isDbConfigured) return null;
+  const { userId } = await auth();
+  if (!userId) return null;
   const result = await getAuthContext();
   return result.ctx ?? null;
 }

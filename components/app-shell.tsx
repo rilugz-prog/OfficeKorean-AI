@@ -7,6 +7,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useClerk } from "@clerk/nextjs";
 import {
   LayoutDashboard,
   History,
@@ -34,7 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
-import type { Profile } from "@/lib/database.types";
+import type { ProfileRow } from "@/lib/db/schema";
 import { PLANS } from "@/lib/plans";
 
 const NAV = [
@@ -45,7 +46,7 @@ const NAV = [
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-function initials(profile: Profile): string {
+function initials(profile: ProfileRow): string {
   const source = profile.full_name || profile.email || "U";
   return source
     .split(/[\s@.]+/)
@@ -59,10 +60,11 @@ export function AppShell({
   profile,
   children,
 }: {
-  profile: Profile;
+  profile: ProfileRow;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { signOut } = useClerk();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const plan = PLANS[profile.subscription_tier];
 
@@ -169,12 +171,13 @@ export function AppShell({
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <form action="/auth/signout" method="post" className="w-full">
-                    <button type="submit" className="flex w-full items-center gap-2">
-                      <LogOut /> Sign out
-                    </button>
-                  </form>
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    void signOut({ redirectUrl: "/login" });
+                  }}
+                >
+                  <LogOut /> Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

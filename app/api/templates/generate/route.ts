@@ -1,4 +1,7 @@
+import { eq } from "drizzle-orm";
 import { getAuthContext, apiError, apiSuccess } from "@/lib/api";
+import { db } from "@/lib/db";
+import { templates as templatesTable } from "@/lib/db/schema";
 import { parseBody, generateTemplateSchema } from "@/lib/validation";
 import { checkFeatureLimit, recordUsage, saveHistory } from "@/lib/usage";
 import { runClaudeJSON } from "@/lib/anthropic";
@@ -21,11 +24,14 @@ export async function POST(req: Request) {
   let templateTitle = parsed.data.template_title ?? "Workplace Message";
   let category = parsed.data.category ?? "Custom";
   if (parsed.data.template_id) {
-    const { data: tpl } = await ctx.supabase
-      .from("templates")
-      .select("title, category")
-      .eq("id", parsed.data.template_id)
-      .single();
+    const [tpl] = await db
+      .select({
+        title: templatesTable.title,
+        category: templatesTable.category,
+      })
+      .from(templatesTable)
+      .where(eq(templatesTable.id, parsed.data.template_id))
+      .limit(1);
     if (tpl) {
       templateTitle = tpl.title;
       category = tpl.category;
@@ -33,7 +39,7 @@ export async function POST(req: Request) {
   }
 
   // Enforce the translation limit.
-  const check = await checkFeatureLimit(ctx.supabase, "translation", ctx.tier);
+  const check = await checkFeatureLimit(ctx.userId, "translation", ctx.tier);
   if (!check.allowed) {
     return apiError(
       "LIMIT_REACHED",
@@ -60,9 +66,9 @@ export async function POST(req: Request) {
     return apiError("SERVER_ERROR", "Template generation failed. Please try again.");
   }
 
-  await recordUsage(ctx.supabase, "translation");
-  await saveHistory(ctx.supabase, {
-    userId: ctx.user.id,
+  await recordUsage(ctx.userId, "translation");
+  await saveHistory({
+    userId: ctx.userId,
     feature: "translation",
     input: parsed.data.situation,
     output: `${result.korean}\n\n${result.english}`,

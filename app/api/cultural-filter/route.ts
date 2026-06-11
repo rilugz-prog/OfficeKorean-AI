@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     const ctx = await getOptionalAuthContext();
     if (ctx) {
-      const check = await checkFeatureLimit(ctx.supabase, "cultural_filter", ctx.tier);
+      const check = await checkFeatureLimit(ctx.userId, "cultural_filter", ctx.tier);
       if (!check.allowed) {
         return NextResponse.json(
           {
@@ -52,9 +52,9 @@ export async function POST(req: NextRequest) {
     });
 
     if (ctx) {
-      await recordUsage(ctx.supabase, "cultural_filter");
-      await saveHistory(ctx.supabase, {
-        userId: ctx.user.id,
+      await recordUsage(ctx.userId, "cultural_filter");
+      await saveHistory({
+        userId: ctx.userId,
         feature: "cultural_filter",
         input: text,
         output: result.professional,

@@ -1,8 +1,11 @@
 // ---------------------------------------------------------------------------
-// Supabase database types for SeoroAI.
+// Domain types for SeoroAI — the API / wire contract.
 //
-// Hand-maintained to mirror supabase/migrations. If you change the schema,
-// update this file (or regenerate with `supabase gen types typescript`).
+// These describe the JSON shapes returned by the Route Handlers and consumed
+// by the client hooks & components (snake_case, dates as ISO strings). They
+// intentionally mirror the Drizzle row types in lib/db/schema.ts but use
+// `string` for timestamps (as serialized over HTTP). The Drizzle `*Row` types
+// (with `Date` timestamps) are for server-side use only.
 // ---------------------------------------------------------------------------
 
 export type SubscriptionTier = "free" | "pro" | "premium";
@@ -16,6 +19,7 @@ export interface NotificationPreferences {
 
 export interface Profile {
   id: string;
+  clerk_user_id: string;
   email: string | null;
   full_name: string | null;
   avatar_url: string | null;
@@ -78,69 +82,4 @@ export interface Template {
   situation_hint: string | null;
   sort_order: number;
   created_at: string;
-}
-
-// Minimal generated-style Database shape consumed by @supabase/supabase-js.
-export interface Database {
-  public: {
-    Tables: {
-      profiles: {
-        Row: Profile;
-        Insert: Partial<Profile> & { id: string };
-        Update: Partial<Profile>;
-      };
-      usage_tracking: {
-        Row: UsageTracking;
-        Insert: Partial<UsageTracking> & { user_id: string; feature_type: FeatureType };
-        Update: Partial<UsageTracking>;
-      };
-      translation_history: {
-        Row: TranslationHistory;
-        Insert: Partial<TranslationHistory> & {
-          user_id: string;
-          feature_type: FeatureType;
-          input_text: string;
-          output_text: string;
-        };
-        Update: Partial<TranslationHistory>;
-      };
-      saved_phrases: {
-        Row: SavedPhrase;
-        Insert: Partial<SavedPhrase> & {
-          user_id: string;
-          title: string;
-          phrase_content: string;
-        };
-        Update: Partial<SavedPhrase>;
-      };
-      favorites: {
-        Row: Favorite;
-        Insert: Partial<Favorite> & {
-          user_id: string;
-          resource_type: ResourceType;
-          resource_id: string;
-        };
-        Update: Partial<Favorite>;
-      };
-      templates: {
-        Row: Template;
-        Insert: Partial<Template> & { category: string; title: string };
-        Update: Partial<Template>;
-      };
-    };
-    Functions: {
-      increment_usage: {
-        Args: { p_feature: FeatureType };
-        Returns: number;
-      };
-      usage_today: {
-        Args: { p_feature: FeatureType };
-        Returns: number;
-      };
-      usage_this_month: {
-        Args: { p_feature: FeatureType };
-        Returns: number;
-      };
-    };
-  };
 }

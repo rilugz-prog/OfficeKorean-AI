@@ -1,4 +1,7 @@
+import { and, eq } from "drizzle-orm";
 import { getAuthContext, apiError, apiSuccess } from "@/lib/api";
+import { db } from "@/lib/db";
+import { saved_phrases } from "@/lib/db/schema";
 import { parseBody, updatePhraseSchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
@@ -16,16 +19,12 @@ export async function POST(req: Request) {
     return apiError("VALIDATION_ERROR", "No fields to update.");
   }
 
-  const { data, error: dbError } = await ctx.supabase
-    .from("saved_phrases")
-    .update(updates)
-    .eq("id", id)
-    .eq("user_id", ctx.user.id)
-    .select("*")
-    .single();
+  const [phrase] = await db
+    .update(saved_phrases)
+    .set({ ...updates, updated_at: new Date() })
+    .where(and(eq(saved_phrases.id, id), eq(saved_phrases.user_id, ctx.userId)))
+    .returning();
 
-  if (dbError || !data) {
-    return apiError("NOT_FOUND", "Phrase not found.");
-  }
-  return apiSuccess({ phrase: data });
+  if (!phrase) return apiError("NOT_FOUND", "Phrase not found.");
+  return apiSuccess({ phrase });
 }

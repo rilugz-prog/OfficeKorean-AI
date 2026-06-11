@@ -1,72 +1,82 @@
 // ---------------------------------------------------------------------------
 // Server-side auth helpers. Used by Server Components and Route Handlers.
+//
+// Backed by Clerk: the session is resolved with `auth()` / `currentUser()` and
+// mapped to the local `profiles` row (created lazily if the webhook hasn't run
+// yet). Same exported surface as the previous Supabase implementation.
 // ---------------------------------------------------------------------------
 
 import { redirect } from "next/navigation";
-import type { User } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/server";
-import type { Profile } from "@/lib/database.types";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { isDbConfigured } from "@/lib/db";
+import type { ProfileRow } from "@/lib/db/schema";
+import {
+  ensureProfile,
+  getProfileByClerkId,
+  type ClerkProfileInput,
+} from "@/lib/user-sync";
 
-/** Returns the current user or null. Never throws. */
-export async function getUser(): Promise<User | null> {
-  if (!isSupabaseConfigured) return null;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
+export interface AuthUser {
+  /** Internal profile id (profiles.id) — the owner id used for all queries. */
+  id: string;
+  clerkUserId: string;
+  email: string | null;
 }
 
-/** Returns the current user, redirecting to /login if unauthenticated. */
-export async function requireUser(nextPath?: string): Promise<User> {
-  const user = await getUser();
-  if (!user) {
+/** Returns the current Clerk user id, or null. Never throws. */
+export async function getUserId(): Promise<string | null> {
+  const { userId } = await auth();
+  return userId ?? null;
+}
+
+/** Returns the current Clerk user id, redirecting to /login if unauthenticated. */
+export async function requireUserId(nextPath?: string): Promise<string> {
+  const userId = await getUserId();
+  if (!userId) {
     const params = nextPath ? `?next=${encodeURIComponent(nextPath)}` : "";
     redirect(`/login${params}`);
   }
-  return user;
+  return userId;
+}
+
+/** Build profile fields from the current Clerk user. */
+async function clerkProfileInput(
+  clerkUserId: string
+): Promise<ClerkProfileInput> {
+  const cu = await currentUser();
+  const email =
+    cu?.primaryEmailAddress?.emailAddress ??
+    cu?.emailAddresses?.[0]?.emailAddress ??
+    null;
+  const fullName =
+    [cu?.firstName, cu?.lastName].filter(Boolean).join(" ") ||
+    cu?.username ||
+    null;
+  return { clerkUserId, email, fullName, avatarUrl: cu?.imageUrl ?? null };
 }
 
 /** Returns the current user's profile, or null. */
-export async function getProfile(): Promise<Profile | null> {
-  if (!isSupabaseConfigured) return null;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const { data } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  return (data as Profile) ?? null;
+export async function getProfile(): Promise<ProfileRow | null> {
+  if (!isDbConfigured) return null;
+  const userId = await getUserId();
+  if (!userId) return null;
+  return getProfileByClerkId(userId);
 }
 
 /** Returns the current user + profile, redirecting to /login if needed. */
 export async function requireProfile(
   nextPath?: string
-): Promise<{ user: User; profile: Profile }> {
-  const user = await requireUser(nextPath);
-  const supabase = await createClient();
-  let { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+): Promise<{ user: AuthUser; profile: ProfileRow }> {
+  const clerkUserId = await requireUserId(nextPath);
 
-  // Defensive: create a profile if the signup trigger didn't (e.g. legacy user).
+  let profile = await getProfileByClerkId(clerkUserId);
   if (!profile) {
-    const { data: created } = await supabase
-      .from("profiles")
-      .insert({ id: user.id, email: user.email })
-      .select("*")
-      .single();
-    profile = created;
+    // Defensive: create a profile if the webhook hasn't synced yet.
+    profile = await ensureProfile(await clerkProfileInput(clerkUserId));
   }
 
-  return { user, profile: profile as Profile };
+  return {
+    user: { id: profile.id, clerkUserId, email: profile.email },
+    profile,
+  };
 }

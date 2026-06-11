@@ -1,4 +1,7 @@
+import { and, asc, eq, gte, sql } from "drizzle-orm";
 import { getAuthContext, apiSuccess } from "@/lib/api";
+import { db } from "@/lib/db";
+import { favorites, translation_history, usage_tracking } from "@/lib/db/schema";
 import { getPlan } from "@/lib/plans";
 import { getFeatureUsage, checkPhraseLimit } from "@/lib/usage";
 import type { FeatureType } from "@/lib/database.types";
@@ -16,7 +19,7 @@ export async function GET() {
 
   const features = await Promise.all(
     FEATURES.map(async (feature) => {
-      const used = await getFeatureUsage(ctx.supabase, feature, ctx.tier);
+      const used = await getFeatureUsage(ctx.userId, feature, ctx.tier);
       const { limit, period } = plan.limits[feature];
       return {
         feature,
@@ -28,29 +31,38 @@ export async function GET() {
     })
   );
 
-  const phrase = await checkPhraseLimit(ctx.supabase, ctx.user.id, ctx.tier);
+  const phrase = await checkPhraseLimit(ctx.userId, ctx.tier);
 
   // Aggregate counts for dashboard cards.
-  const [historyCount, favCount] = await Promise.all([
-    ctx.supabase
-      .from("translation_history")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", ctx.user.id),
-    ctx.supabase
-      .from("favorites")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", ctx.user.id),
+  const [historyCountRows, favCountRows] = await Promise.all([
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(translation_history)
+      .where(eq(translation_history.user_id, ctx.userId)),
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(favorites)
+      .where(eq(favorites.user_id, ctx.userId)),
   ]);
 
   // 7-day usage trend for charts.
   const since = new Date();
   since.setDate(since.getDate() - 6);
-  const { data: trendRows } = await ctx.supabase
-    .from("usage_tracking")
-    .select("feature_type, usage_count, usage_date")
-    .eq("user_id", ctx.user.id)
-    .gte("usage_date", since.toISOString().slice(0, 10))
-    .order("usage_date", { ascending: true });
+  const sinceDate = since.toISOString().slice(0, 10);
+  const trendRows = await db
+    .select({
+      feature_type: usage_tracking.feature_type,
+      usage_count: usage_tracking.usage_count,
+      usage_date: usage_tracking.usage_date,
+    })
+    .from(usage_tracking)
+    .where(
+      and(
+        eq(usage_tracking.user_id, ctx.userId),
+        gte(usage_tracking.usage_date, sinceDate)
+      )
+    )
+    .orderBy(asc(usage_tracking.usage_date));
 
   return apiSuccess({
     tier: ctx.tier,
@@ -62,9 +74,9 @@ export async function GET() {
       remaining: phrase.remaining,
     },
     counts: {
-      history: historyCount.count ?? 0,
-      favorites: favCount.count ?? 0,
+      history: Number(historyCountRows[0]?.count ?? 0),
+      favorites: Number(favCountRows[0]?.count ?? 0),
     },
-    trend: trendRows ?? [],
+    trend: trendRows,
   });
 }
