@@ -1,6 +1,7 @@
 import { Sparkles, Zap, ShieldCheck } from "lucide-react";
 
 import { DashboardMockup } from "@/components/landing/dashboard-mockup";
+import { Reveal } from "@/components/landing/reveal";
 
 const HIGHLIGHTS = [
   {
@@ -26,12 +27,12 @@ export function SolutionSection() {
       <div className="container">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           {/* Mockup */}
-          <div className="order-2 lg:order-1">
+          <Reveal className="order-2 lg:order-1">
             <DashboardMockup />
-          </div>
+          </Reveal>
 
           {/* Copy */}
-          <div className="order-1 lg:order-2">
+          <Reveal delay={120} className="order-1 lg:order-2">
             <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-primary">
               The Solution
             </p>
@@ -60,7 +61,7 @@ export function SolutionSection() {
                 </li>
               ))}
             </ul>
-          </div>
+          </Reveal>
         </div>
       </div>
     </section>

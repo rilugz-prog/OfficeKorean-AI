@@ -2,6 +2,7 @@ import { Plane, GraduationCap, Briefcase, BookOpen } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { SectionHeading } from "@/components/landing/section-heading";
+import { Reveal } from "@/components/landing/reveal";
 
 const AUDIENCES = [
   {
@@ -34,29 +35,30 @@ export function AudienceSection() {
   return (
     <section className="py-20 sm:py-28">
       <div className="container">
-        <SectionHeading
-          eyebrow="Who It's For"
-          title="Made for Everyone Writing Korean as a Second Language"
-        />
+        <Reveal>
+          <SectionHeading
+            eyebrow="Who It's For"
+            title="Made for Everyone Writing Korean as a Second Language"
+          />
+        </Reveal>
 
         <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {AUDIENCES.map((audience) => (
-            <Card
-              key={audience.title}
-              className="border-border/60 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-            >
-              <CardContent className="p-6">
-                <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <audience.icon className="h-7 w-7" />
-                </span>
-                <h3 className="mt-4 text-lg font-semibold text-foreground">
-                  {audience.title}
-                </h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {audience.description}
-                </p>
-              </CardContent>
-            </Card>
+          {AUDIENCES.map((audience, index) => (
+            <Reveal key={audience.title} delay={index * 80} className="h-full">
+              <Card className="h-full border-border/60 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                <CardContent className="p-6">
+                  <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                    <audience.icon className="h-7 w-7" aria-hidden="true" />
+                  </span>
+                  <h3 className="mt-4 text-lg font-semibold text-foreground">
+                    {audience.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {audience.description}
+                  </p>
+                </CardContent>
+              </Card>
+            </Reveal>
           ))}
         </div>
       </div>

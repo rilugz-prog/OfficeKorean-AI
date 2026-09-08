@@ -19,7 +19,27 @@
       "Bash(node -e \"const s = require\\('./node_modules/@base44/sdk/dist/index.js'\\); console.log\\('exports:', Object.keys\\(s\\).slice\\(0, 10\\)\\);\")",
       "Bash(npm uninstall *)",
       "Bash(del \"C:\\\\Users\\\\Intellian\\\\Documents\\\\Claude Code\\\\KoreanEnglish Translator\\\\lib\\\\base44Client.ts\")",
-      "Bash(cd \"C:\\\\Users\\\\Intellian\\\\Documents\\\\Claude Code\\\\KoreanEnglish Translator\" && sed -i 's/OfficeKorean AI/SeoroAI/g' supabase/migrations/*.sql)"
+      "Bash(cd \"C:\\\\Users\\\\Intellian\\\\Documents\\\\Claude Code\\\\KoreanEnglish Translator\" && sed -i 's/OfficeKorean AI/SeoroAI/g' supabase/migrations/*.sql)",
+      "Bash(curl -s -o /dev/null -w \"home: %{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(curl -s -o /dev/null -w \"privacy: %{http_code}\\\\n\" http://localhost:3000/privacy)",
+      "Bash(curl -s http://localhost:3000/)",
+      "Bash(curl -s -o /dev/null -w \"translate \\(anon\\): %{http_code} -> %{redirect_url}\\\\n\" http://localhost:3000/translate)",
+      "Bash(git reset *)",
+      "PowerShell(npm view uipro-cli --json 2>&1)",
+      "PowerShell(npm view uipro-cli description homepage repository.url license maintainers dist.tarball scripts bin dependencies 2>&1)",
+      "PowerShell(npm install -g uipro-cli 2>&1)",
+      "PowerShell(uipro --version 2>&1)",
+      "PowerShell(uipro --help 2>&1)",
+      "PowerShell(uipro init --help 2>&1)",
+      "PowerShell(uipro init -a claude 2>&1)",
+      "PowerShell(python --version 2>&1)",
+      "PowerShell(python \".claude/skills/ui-ux-pro-max/scripts/search.py\" \"SaaS landing page AI writing assistant productivity professional trust\" --design-system -p \"SeoroAI\" 2>&1)",
+      "PowerShell(python \".claude/skills/ui-ux-pro-max/scripts/search.py\" \"animation reduced-motion accessibility focus keyboard scroll reveal\" --domain ux -n 14 2>&1)",
+      "PowerShell(python \".claude/skills/ui-ux-pro-max/scripts/search.py\" \"interactive client component animation hydration\" --stack nextjs -n 8 2>&1)",
+      "PowerShell(npx tsc --noEmit 2>&1)",
+      "PowerShell(npm run build 2>&1)",
+      "PowerShell(npx next start -p 3100 2>&1)",
+      "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 30; \"=== TSC EXIT: $LASTEXITCODE ===\"; npm run build 2>&1 | Select-Object -Last 12)"
     ]
   }
 }

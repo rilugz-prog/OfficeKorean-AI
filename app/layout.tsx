@@ -27,6 +27,21 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
+        <head>
+          {/*
+            Scroll-revealed content starts at opacity:0 and is shown by JS.
+            Without JS that would leave the page blank, so force it visible.
+          */}
+          <noscript>
+            {/* eslint-disable-next-line react/no-danger */}
+            <style
+              dangerouslySetInnerHTML={{
+                __html:
+                  ".reveal,.ba-line{opacity:1!important;transform:none!important}",
+              }}
+            />
+          </noscript>
+        </head>
         <body className={inter.className}>
           <a
             href="#main-content"

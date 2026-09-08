@@ -1,10 +1,12 @@
 import { Quote } from "lucide-react";
 
+import { Reveal } from "@/components/landing/reveal";
+
 export function FounderSection() {
   return (
     <section className="py-20 sm:py-28">
       <div className="container">
-        <div className="mx-auto max-w-3xl">
+        <Reveal className="mx-auto max-w-3xl">
           <div className="grid items-center gap-8 sm:grid-cols-[auto_1fr]">
             {/* Founder avatar */}
             <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl bg-primary/10 text-2xl font-bold text-primary sm:mx-0">
@@ -42,7 +44,7 @@ export function FounderSection() {
               SeoroAI
             </figcaption>
           </figure>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

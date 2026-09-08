@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Play, Check, Rocket } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { DashboardMockup } from "@/components/landing/dashboard-mockup";
+import { InteractiveDemo } from "@/components/landing/interactive-demo";
 
 const TRUST = [
   "Free during beta",
@@ -99,9 +99,12 @@ export function HeroSection() {
             </ul>
           </div>
 
-          {/* Mockup */}
+          {/* Live, playable preview — autoplays once, then hands over control. */}
           <div className="animate-fade-in-up [animation-delay:120ms]">
-            <DashboardMockup />
+            <InteractiveDemo autoPlay />
+            <p className="mt-3 text-center text-xs text-muted-foreground">
+              Try it — switch the scenario and tone above.
+            </p>
           </div>
         </div>
       </div>

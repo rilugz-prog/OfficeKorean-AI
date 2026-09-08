@@ -2,6 +2,7 @@ import { Mail, Languages, SpellCheck, Bot } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { SectionHeading } from "@/components/landing/section-heading";
+import { Reveal } from "@/components/landing/reveal";
 
 const PROBLEMS = [
   {
@@ -30,29 +31,30 @@ export function ProblemSection() {
   return (
     <section className="bg-muted/30 py-20 sm:py-28">
       <div className="container">
-        <SectionHeading
-          eyebrow="The Problem"
-          title="Writing Korean Shouldn't Be This Stressful"
-        />
+        <Reveal>
+          <SectionHeading
+            eyebrow="The Problem"
+            title="Writing Korean Shouldn't Be This Stressful"
+          />
+        </Reveal>
 
         <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {PROBLEMS.map((problem) => (
-            <Card
-              key={problem.title}
-              className="border-border/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-            >
-              <CardContent className="p-6">
-                <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
-                  <problem.icon className="h-6 w-6" />
-                </span>
-                <h3 className="mt-4 text-lg font-semibold text-foreground">
-                  {problem.title}
-                </h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {problem.description}
-                </p>
-              </CardContent>
-            </Card>
+          {PROBLEMS.map((problem, index) => (
+            <Reveal key={problem.title} delay={index * 80} className="h-full">
+              <Card className="h-full border-border/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                <CardContent className="p-6">
+                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+                    <problem.icon className="h-6 w-6" aria-hidden="true" />
+                  </span>
+                  <h3 className="mt-4 text-lg font-semibold text-foreground">
+                    {problem.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {problem.description}
+                  </p>
+                </CardContent>
+              </Card>
+            </Reveal>
           ))}
         </div>
       </div>
