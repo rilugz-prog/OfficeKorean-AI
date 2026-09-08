@@ -23,7 +23,7 @@ const HIGHLIGHTS = [
 
 export function SolutionSection() {
   return (
-    <section id="demo" className="py-20 sm:py-28">
+    <section id="demo" className="py-24 sm:py-36">
       <div className="container">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           {/* Mockup */}

@@ -29,7 +29,7 @@ const PROBLEMS = [
 
 export function ProblemSection() {
   return (
-    <section className="bg-muted/30 py-20 sm:py-28">
+    <section className="bg-muted/30 py-24 sm:py-36">
       <div className="container">
         <Reveal>
           <SectionHeading

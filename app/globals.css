@@ -68,6 +68,79 @@
   }
 }
 
+/*
+ * Editorial treatment for the marketing pages.
+ *
+ * Scoped to `.editorial` so the signed-in app keeps its Inter/rounded UI.
+ * Sets a Cormorant Garamond display serif over a DM Sans body, and squares
+ * off corners the way an editorial layout expects.
+ */
+.editorial {
+  --radius: 0px;
+  font-family: var(--font-dm), system-ui, sans-serif;
+  font-weight: 300;
+}
+
+.editorial h1,
+.editorial h2,
+.editorial h3,
+.editorial blockquote {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 300;
+}
+
+.editorial h1 {
+  letter-spacing: -0.01em;
+}
+
+/*
+ * Square every corner inside the editorial scope. `rounded-full` is left
+ * alone so intentional circles (status dots, avatars, window chrome) survive.
+ */
+.editorial :is(.rounded, .rounded-sm, .rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl) {
+  border-radius: 0;
+}
+
+/* Thin, widely-tracked uppercase label that opens each section. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.875rem;
+  font-family: var(--font-dm), system-ui, sans-serif;
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+}
+
+/* The hairline rule that precedes the eyebrow text. */
+.eyebrow::before {
+  content: "";
+  width: 2rem;
+  height: 1px;
+  background-color: currentColor;
+  opacity: 0.45;
+}
+
+/* Centered eyebrows get a matching rule on the trailing side. */
+.eyebrow-center::after {
+  content: "";
+  width: 2rem;
+  height: 1px;
+  background-color: currentColor;
+  opacity: 0.45;
+}
+
+/* Uppercase, letter-spaced call to action, matching the editorial buttons. */
+.cta-editorial {
+  font-family: var(--font-dm), system-ui, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
 /* Subtle dotted backdrop for the hero / page. */
 .bg-grid-radial {
   background-image: radial-gradient(

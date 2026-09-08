@@ -1,11 +1,28 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Cormorant_Garamond, DM_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 import { ThemeProvider } from "@/components/theme-provider";
 
+// Inter stays the default UI typeface for the signed-in app.
 const inter = Inter({ subsets: ["latin"], display: "swap" });
+
+// The marketing pages use an editorial serif/sans pairing, exposed as CSS
+// variables so only `.editorial` scopes pick them up.
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["300", "400"],
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--font-display",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-dm",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -42,7 +59,9 @@ export default function RootLayout({
             />
           </noscript>
         </head>
-        <body className={inter.className}>
+        <body
+          className={`${inter.className} ${cormorant.variable} ${dmSans.variable}`}
+        >
           <a
             href="#main-content"
             className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"

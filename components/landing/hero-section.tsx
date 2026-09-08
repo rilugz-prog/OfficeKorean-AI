@@ -26,17 +26,16 @@ export function HeroSection() {
         <div className="grid items-center gap-12 lg:grid-cols-2">
           {/* Copy */}
           <div className="animate-fade-in-up text-center lg:text-left">
-            <span className="inline-flex items-center gap-2 rounded-full border bg-background/70 px-4 py-1.5 text-sm font-medium text-muted-foreground backdrop-blur">
-              <span aria-hidden="true">🇰🇷</span> Built for expats and Korean
-              learners
-            </span>
+            <p className="eyebrow justify-center text-primary lg:justify-start">
+              Korean Writing Assistant · Built for Expats
+            </p>
 
-            <h1 className="mt-6 text-[1.85rem] font-bold leading-[1.15] tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+            <h1 className="mt-7 text-[2.5rem] leading-[1.1] text-foreground sm:text-5xl lg:text-6xl">
               Write professional Korean emails, reports, and workplace messages{" "}
-              <span className="text-primary">in seconds.</span>
+              <em className="text-primary">in seconds.</em>
             </h1>
 
-            <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground lg:mx-0">
+            <p className="mx-auto mt-6 max-w-xl text-lg font-light leading-relaxed text-muted-foreground lg:mx-0">
               SeoroAI is your AI-powered Korean writing assistant — built for
               expats, students, and professionals who want to sound natural and
               confident in Korean.
@@ -45,23 +44,23 @@ export function HeroSection() {
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start">
               <Button
                 size="lg"
-                className="h-12 w-full text-base sm:w-auto"
+                className="cta-editorial h-[3.25rem] w-full px-10 sm:w-auto"
                 aria-label="Start the free beta — create your account"
                 asChild
               >
                 <Link href="/register">
                   Start Writing Free
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </Link>
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                className="h-12 w-full text-base sm:w-auto"
+                className="cta-editorial h-[3.25rem] w-full px-10 sm:w-auto"
                 asChild
               >
                 <a href="#demo" aria-label="Watch the product demo">
-                  <Play className="h-4 w-4" aria-hidden="true" />
+                  <Play className="h-3.5 w-3.5" aria-hidden="true" />
                   Watch Demo
                 </a>
               </Button>

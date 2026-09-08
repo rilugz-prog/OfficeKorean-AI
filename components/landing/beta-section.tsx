@@ -28,7 +28,7 @@ const BENEFITS = [
 
 export function BetaSection() {
   return (
-    <section className="bg-muted/30 py-20 sm:py-28">
+    <section className="bg-muted/30 py-24 sm:py-36">
       <div className="container">
         <div className="mx-auto max-w-2xl text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-sm font-semibold text-amber-600">

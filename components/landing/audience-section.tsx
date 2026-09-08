@@ -33,7 +33,7 @@ const AUDIENCES = [
 
 export function AudienceSection() {
   return (
-    <section className="py-20 sm:py-28">
+    <section className="py-24 sm:py-36">
       <div className="container">
         <Reveal>
           <SectionHeading

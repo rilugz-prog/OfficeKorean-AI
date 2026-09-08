@@ -32,7 +32,7 @@ export function BeforeAfterSection() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-primary to-blue-700 py-20 text-white sm:py-28">
+    <section className="relative overflow-hidden bg-gradient-to-b from-primary to-blue-700 py-24 text-white sm:py-36">
       <div
         aria-hidden="true"
         className="bg-grid-radial pointer-events-none absolute inset-0 opacity-20"

@@ -34,15 +34,17 @@ export function SiteNav() {
     >
       <nav className="container flex h-16 items-center justify-between">
         {/* Logo */}
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-lg font-bold tracking-tight"
-        >
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <PenLine className="h-4 w-4" />
+        <Link href="/" className="flex items-center gap-3">
+          <span className="inline-flex h-8 w-8 items-center justify-center bg-primary text-primary-foreground">
+            <PenLine className="h-4 w-4" aria-hidden="true" />
           </span>
-          <span>
-            Seoro<span className="text-primary">AI</span>
+          <span className="leading-none">
+            <span className="block text-base font-normal uppercase tracking-[0.28em] text-foreground">
+              Seoro<span className="text-primary">AI</span>
+            </span>
+            <span className="mt-1 hidden text-[0.5rem] font-medium uppercase tracking-[0.3em] text-muted-foreground sm:block">
+              Korean Writing Assistant
+            </span>
           </span>
         </Link>
 
@@ -52,7 +54,7 @@ export function SiteNav() {
             <a
               key={link.href}
               href={link.href}
-              className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="px-4 py-2 text-[0.6875rem] font-medium uppercase tracking-[0.18em] text-muted-foreground transition-colors duration-200 hover:text-foreground"
             >
               {link.label}
             </a>
@@ -62,15 +64,15 @@ export function SiteNav() {
         {/* Desktop CTAs */}
         <div className="hidden items-center gap-2 md:flex">
           <SignedOut>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" className="cta-editorial px-4" asChild>
               <Link href="/login">Sign In</Link>
             </Button>
-            <Button size="sm" asChild>
+            <Button size="sm" className="cta-editorial px-5" asChild>
               <Link href="/register">Start Free Beta</Link>
             </Button>
           </SignedOut>
           <SignedIn>
-            <Button size="sm" asChild>
+            <Button size="sm" className="cta-editorial px-5" asChild>
               <Link href="/dashboard">Dashboard</Link>
             </Button>
           </SignedIn>
@@ -97,7 +99,7 @@ export function SiteNav() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="px-3 py-3 text-[0.6875rem] font-medium uppercase tracking-[0.18em] text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground"
               >
                 {link.label}
               </a>

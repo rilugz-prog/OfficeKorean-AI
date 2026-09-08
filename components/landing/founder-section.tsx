@@ -4,7 +4,7 @@ import { Reveal } from "@/components/landing/reveal";
 
 export function FounderSection() {
   return (
-    <section className="py-20 sm:py-28">
+    <section className="py-24 sm:py-36">
       <div className="container">
         <Reveal className="mx-auto max-w-3xl">
           <div className="grid items-center gap-8 sm:grid-cols-[auto_1fr]">

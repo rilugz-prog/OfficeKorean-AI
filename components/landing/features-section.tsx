@@ -178,7 +178,7 @@ function FeatureCard({ feature, index }: { feature: Feature; index: number }) {
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="bg-muted/30 py-20 sm:py-28">
+    <section id="features" className="bg-muted/30 py-24 sm:py-36">
       <div className="container">
         <Reveal>
           <SectionHeading

@@ -11,7 +11,7 @@ const POINTS = [
 
 export function FinalCtaSection() {
   return (
-    <section className="py-20 sm:py-28">
+    <section className="py-24 sm:py-36">
       <div className="container">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-blue-700 px-6 py-16 text-center text-white shadow-xl sm:px-12 sm:py-20">
           <div
@@ -24,19 +24,20 @@ export function FinalCtaSection() {
           />
 
           <div className="relative mx-auto max-w-2xl">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Write Korean You'll Be Proud to Send
+            <h2 className="text-[2.25rem] leading-[1.15] sm:text-5xl">
+              Write Korean You&apos;ll Be Proud to{" "}
+              <em className="text-amber-200">Send</em>
             </h2>
-            <p className="mt-4 text-lg text-white/80">
+            <p className="mt-6 text-lg font-light leading-relaxed text-white/80">
               Join the free beta and send your next Korean email with confidence
               — in the next 60 seconds.
             </p>
 
-            <div className="mt-8">
+            <div className="mt-10">
               <Button
                 size="lg"
                 variant="secondary"
-                className="h-12 bg-white text-base text-primary hover:bg-white/90"
+                className="cta-editorial h-[3.25rem] bg-white px-10 text-primary hover:bg-white/90"
                 aria-label="Start the free beta — create your account"
                 asChild
               >

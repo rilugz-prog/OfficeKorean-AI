@@ -44,7 +44,7 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div className="flex min-h-screen flex-col pb-16 md:pb-0">
+    <div className="editorial flex min-h-screen flex-col pb-16 md:pb-0">
       <SiteNav />
       <main id="main-content" className="flex-1">
         <HeroSection />
